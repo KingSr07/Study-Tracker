@@ -16,6 +16,12 @@ button{border:0;border-radius:10px;padding:10px 14px;color:white;background:var(
 .timer-display{margin:18px 0;padding:20px 12px;background:#111620;border:1px solid var(--border);border-radius:13px;text-align:center;font:700 clamp(2rem,8vw,3rem)/1.1 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.04em;font-variant-numeric:tabular-nums}.timer-status{min-height:22px;margin-top:10px;color:var(--muted);font-size:.88rem}.timer-actions{justify-content:stretch}.timer-actions button{flex:1}.reset-row{margin-top:16px;display:flex;justify-content:flex-end}
 .history-list{display:grid;gap:8px;max-height:300px;overflow:auto;padding-right:4px}.history-item{padding:12px;background:#141a24;border:1px solid var(--border);border-radius:10px;align-items:flex-start}.history-subject{font-weight:650}.history-date{color:var(--muted);font-size:.82rem}.history-duration{color:var(--green);font-weight:700;white-space:nowrap}
 @media(max-width:760px){.layout{grid-template-columns:1fr}.form-row{grid-template-columns:1fr 110px}.form-row button{grid-column:1/-1}}@media(max-width:420px){.app{width:calc(100% - 20px);padding-top:26px}.panel{padding:16px}.form-row{grid-template-columns:1fr}.form-row button{grid-column:auto}.subject-meta{align-items:flex-start;flex-direction:column;gap:4px}}
+
+.feedback-intro{margin:-6px 0 16px;color:var(--muted)}
+.feedback-textarea{display:block;width:100%;min-height:120px;resize:vertical;padding:12px;color:var(--text);background:#111620;border:1px solid var(--border);border-radius:10px;font:inherit;outline:none}
+.feedback-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px #8b7cff26}
+.feedback-actions{display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap}
+.feedback-status{color:var(--muted);font-size:.88rem}
 </style>
 </head>
 <body>
@@ -25,6 +31,13 @@ button{border:0;border-radius:10px;padding:10px 14px;color:white;background:var(
 <section class="panel"><div class="section-heading"><h2>Manage Subjects</h2><span class="muted" id="subject-count">0 subjects</span></div>
 <form id="subject-form" class="form-row"><input id="subject-name" type="text" placeholder="Subject or task name" maxlength="80" required><input id="target-hours" type="number" placeholder="Target hours" min="0.01" step="0.01" required aria-label="Target hours"><button type="submit">Add Subject</button></form><div class="subject-list" id="subject-list" style="margin-top:16px"></div></section>
 <section class="panel"><h2>Session History</h2><div class="history-list" id="history-list"></div></section>
+<section class="panel"><h2>Help improve Study Tracker</h2>
+<p class="feedback-intro">Your suggestion will open as a public GitHub issue for review. Please don’t include personal or sensitive information.</p>
+<form id="feedback-form">
+<label for="feedback-text">What could be improved?</label>
+<textarea id="feedback-text" class="feedback-textarea" maxlength="2000" placeholder="Tell us what would make the Study Tracker more useful for you…" required></textarea>
+<div class="feedback-actions"><button type="submit">Send suggestion</button><span id="feedback-status" class="feedback-status" aria-live="polite"></span></div>
+</form></section>
 </div><aside><section class="panel"><h2>Focus Timer</h2><label class="muted" for="subject-select">Choose a subject</label><select id="subject-select" style="margin-top:7px"></select><div class="timer-display" id="timer-display" role="timer">00:00:00</div><div class="timer-actions"><button id="start-btn" type="button">Start</button><button id="pause-btn" type="button" class="secondary" disabled>Pause</button><button id="save-btn" type="button" class="secondary" disabled>Stop &amp; Save</button></div><div class="timer-status" id="timer-status" aria-live="polite">Add a subject to begin.</div><div class="reset-row"><button id="reset-btn" type="button" class="danger small">Reset All Data</button></div></section></aside></div></main>
 <script>
 (function(){
@@ -47,6 +60,9 @@ pause.addEventListener("click",function(){if(startedAt===null)return;elapsed=cur
 save.addEventListener("click",function(){var seconds=Math.floor(current()),s=data.subjects.find(function(x){return x.id===select.value});if(seconds>0&&s){s.totalSeconds+=seconds;data.sessions.push({subjectName:s.name,seconds:seconds,endedAt:new Date().toISOString()});persist()}elapsed=0;startedAt=null;stopTicker();render()});
 select.addEventListener("change",function(){if(startedAt!==null){elapsed=current();startedAt=null;stopTicker()}elapsed=0;updateTimer()});
 reset.addEventListener("click",function(){if(!confirm("Reset all subjects, study totals, and session history? This cannot be undone."))return;localStorage.removeItem(KEY);data={subjects:[],sessions:[]};elapsed=0;startedAt=null;stopTicker();render()});
+
+var feedbackForm=q("#feedback-form"),feedbackText=q("#feedback-text"),feedbackStatus=q("#feedback-status");
+feedbackForm.addEventListener("submit",function(e){e.preventDefault();var suggestion=feedbackText.value.trim();if(!suggestion){feedbackText.focus();return}var title="Study Tracker improvement suggestion",body="What could be improved?\n\n"+suggestion+"\n\nSubmitted from the Study Tracker.";var url="https://github.com/KingSr07/Study-Tracker/issues/new?title="+encodeURIComponent(title)+"&body="+encodeURIComponent(body);feedbackStatus.textContent="Opening GitHub so you can review and submit your suggestion…";window.location.assign(url)});
 render()
 })();
 </script></body></html>
